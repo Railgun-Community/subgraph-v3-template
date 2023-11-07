@@ -4,22 +4,28 @@ import {
   AccumulatorStateUpdateUpdateCommitmentCiphertextStruct,
   AccumulatorStateUpdateUpdateShieldsStruct,
   AccumulatorStateUpdateUpdateTransactionsStruct,
+  AccumulatorStateUpdateUpdateTransactionsUnshieldPreimageStruct,
 } from '../generated/PoseidonMerkleAccumulator/PoseidonMerkleAccumulator';
 import { bigIntToBytes, reversedBytesToBigInt } from './utils';
 import {
   saveCommitmentCiphertext,
   saveCommitmentPreimage,
   saveNullifier,
+  saveRailgunTransaction,
   saveShieldCommitment,
   saveToken,
   saveTransactCommitment,
   saveUnshield,
 } from './entity';
 import { idFrom2PaddedBigInts, idFrom3PaddedBigInts } from './id';
-import { getNoteHash, getUnshieldPreImageNoteHash } from './hash';
+import {
+  calculateRailgunTransactionVerificationHash,
+  getNoteHash,
+  getUnshieldPreImageNoteHash,
+} from './hash';
 import { getTokenHash } from './token';
 import { TreasuryFeeMap, getTreasuryFeeMap } from './treasury-fee-map';
-import { CommitmentCiphertext } from '../generated/schema';
+import { CommitmentCiphertext, VerificationHash } from '../generated/schema';
 
 const TREE_MAX_ITEMS = BigInt.fromString('65536');
 const BIGINT_ONE = BigInt.fromString('1');
@@ -110,28 +116,21 @@ function handleTransactions(
     }
     commitmentsStartIndex = commitmentsEndIndex;
 
-    const hasUnshield = !unshieldPreimage.value.equals(BigInt.zero());
-    // const railgunTxid = getRailgunTransactionID(
-    //   nullifiers,
-    //   commitmentHashes,
-    //   boundParamsHash,
-    //   hasUnshield ? getUnshieldPreImageNoteHash(unshieldPreimage) : null,
-    // );
+    const utxoTreeIn = spendAccumulatorNumber;
 
-    // TODO: Save RailgunTransaction
-    // TODO: Handle case where only-unshield
-    // const railgunTransaction = saveRailgunTransaction(
-    //   event.transaction.hash,
-    //   event.block.number,
-    //   event.block.timestamp,
-    //   commitmentsWithUnshieldHash,
-    //   nullifiers,
-    //   unshieldPreimage,
-    //   boundParamsHash,
-    //   Number(spendAccumulatorNumber), // utxoTreeIn
-    //   utxoTree,
-    //   utxoStartPosition,
-    // );
+    const transactCommitmentBatchIndex = BigInt.fromString(i.toString());
+
+    handleRailgunTransaction(
+      event,
+      nullifiers,
+      commitmentHashes,
+      boundParamsHash,
+      unshieldPreimage,
+      utxoTreeIn,
+      utxoTree,
+      utxoStartPosition,
+      transactCommitmentBatchIndex,
+    );
 
     const transactEventID = idFrom2PaddedBigInts(utxoTree, utxoStartPosition);
 
@@ -178,6 +177,7 @@ function handleTransactions(
       );
     }
 
+    const hasUnshield = !unshieldPreimage.value.equals(BigInt.zero());
     if (hasUnshield) {
       const totalUnshieldValuesForToken = transactions.reduce((acc, curr) => {
         return acc.plus(curr.unshieldPreimage.value);
@@ -197,8 +197,6 @@ function handleTransactions(
             .times(unshieldPreimage.value)
             .div(totalUnshieldValuesForToken)
         : BigInt.zero();
-
-      const transactCommitmentBatchIndex = BigInt.fromString(i.toString());
 
       const unshieldID = idFrom3PaddedBigInts(
         event.block.number,
@@ -316,4 +314,80 @@ function handleShields(
       utxoTree = utxoTree.plus(BIGINT_ONE);
     }
   }
+}
+
+export function handleRailgunTransaction(
+  event: AccumulatorStateUpdateEvent,
+  nullifiers: Bytes[],
+  commitmentHashes: Bytes[],
+  boundParamsHash: Bytes,
+  unshieldPreimage: AccumulatorStateUpdateUpdateTransactionsUnshieldPreimageStruct,
+  utxoTreeIn: BigInt,
+  utxoTree: BigInt,
+  utxoStartPosition: BigInt,
+  transactCommitmentBatchIndex: BigInt,
+): void {
+  const hasUnshield = !unshieldPreimage.value.equals(BigInt.zero());
+  const hasOnlyUnshield = hasUnshield && commitmentHashes.length === 0;
+
+  const commitmentsWithUnshieldHash = hasUnshield
+    ? commitmentHashes.concat([
+        bigIntToBytes(getUnshieldPreImageNoteHash(unshieldPreimage)),
+      ])
+    : commitmentHashes;
+
+  const treeNumber = hasOnlyUnshield ? BigInt.fromI64(99999) : utxoTree;
+  const batchStartTreePosition = hasOnlyUnshield
+    ? BigInt.fromI64(99999)
+    : utxoStartPosition;
+
+  const tokenInfo = unshieldPreimage.token;
+  const token = saveToken(
+    tokenInfo.tokenType,
+    tokenInfo.tokenAddress,
+    tokenInfo.tokenSubID,
+  );
+  const id = idFrom3PaddedBigInts(
+    event.block.number,
+    event.logIndex,
+    transactCommitmentBatchIndex,
+  );
+
+  const verificationHash = updateSavedRailgunTransactionVerificationHash(
+    nullifiers[0],
+  );
+
+  saveRailgunTransaction(
+    id,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    nullifiers,
+    commitmentsWithUnshieldHash,
+    boundParamsHash,
+    hasUnshield,
+    utxoTreeIn,
+    treeNumber,
+    batchStartTreePosition,
+    token,
+    Bytes.fromUint8Array(unshieldPreimage.npk.slice(-20)),
+    unshieldPreimage.value,
+    verificationHash,
+  );
+}
+
+function updateSavedRailgunTransactionVerificationHash(
+  firstNullifier: Bytes,
+): Bytes {
+  let savedObj = VerificationHash.load(Bytes.empty());
+  if (savedObj == null) {
+    savedObj = new VerificationHash(Bytes.empty());
+    savedObj.verificationHash = Bytes.empty();
+  }
+  savedObj.verificationHash = calculateRailgunTransactionVerificationHash(
+    savedObj.verificationHash,
+    firstNullifier,
+  );
+  savedObj.save();
+  return savedObj.verificationHash;
 }

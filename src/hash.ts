@@ -3,19 +3,14 @@ import { PoseidonT4 } from './class/PoseidonT4';
 import { getPoseidonT4ContractAddress } from './contracts';
 import { AccumulatorStateUpdateUpdateTransactionsUnshieldPreimageStruct } from '../generated/PoseidonMerkleAccumulator/PoseidonMerkleAccumulator';
 import { getTokenHash } from './token';
-import { reversedBytesToBigInt } from './utils';
+import { padHexString, reversedBytesToBigInt } from './utils';
+import { crypto } from '@graphprotocol/graph-ts';
 
 export const poseidonT4Hash = (
   input1: BigInt,
   input2: BigInt,
   input3: BigInt,
 ): BigInt => {
-  log.debug('poseidon inputs: {} {} {}', [
-    input1.toString(),
-    input2.toString(),
-    input3.toString(),
-  ]);
-
   const addressHex = getPoseidonT4ContractAddress();
   const contractAddress = Address.fromString(addressHex);
   const poseidonContract = PoseidonT4.bind(contractAddress);
@@ -25,17 +20,6 @@ export const poseidonT4Hash = (
   }
   return callResult.value;
 };
-
-// export const poseidonT4HashMulti = (inputs: BigInt[]): BigInt => {
-//   const addressHex = getPoseidonT4ContractAddress();
-//   const contractAddress = Address.fromString(addressHex);
-//   const poseidonContract = PoseidonT4.bind(contractAddress);
-//   let callResult = poseidonContract.try_poseidon1(inputs);
-//   if (callResult.reverted) {
-//     throw new Error('Poseidon hash call reverted');
-//   }
-//   return callResult.value;
-// };
 
 export const getNoteHash = (
   npk: BigInt,
@@ -60,25 +44,15 @@ export const getUnshieldPreImageNoteHash = (
   );
 };
 
-// export const getRailgunTransactionID = (
-//   nullifiers: Bytes[],
-//   commitments: Bytes[],
-//   boundParamsHash: Bytes,
-//   unshieldCommitmentHash: BigInt | null,
-// ): BigInt => {
-//   const nullifiersBigInt = nullifiers.map<BigInt>((nullifier) =>
-//     reversedBytesToBigInt(nullifier),
-//   );
-//   const commitmentsBigInt = commitments.map<BigInt>((commitment) =>
-//     reversedBytesToBigInt(commitment),
-//   );
-//   const boundParamsHashBigInt = reversedBytesToBigInt(boundParamsHash);
-//   const commitmentsWithUnshieldHash = unshieldCommitmentHash
-//     ? commitmentsBigInt.concat([unshieldCommitmentHash])
-//     : commitmentsBigInt;
-//   return poseidonT4Hash(
-//     poseidonT4HashMulti(nullifiersBigInt),
-//     poseidonT4HashMulti(commitmentsWithUnshieldHash),
-//     boundParamsHashBigInt,
-//   );
-// };
+export const calculateRailgunTransactionVerificationHash = (
+  previousVerificationHash: Bytes | null,
+  firstNullifier: Bytes,
+): Bytes => {
+  // hash[n] = keccak(hash[n-1] ?? 0, n_firstNullifier);
+  const combinedData: Bytes = previousVerificationHash
+    ? previousVerificationHash.concat(firstNullifier)
+    : Bytes.fromHexString('0x').concat(firstNullifier);
+  return Bytes.fromHexString(
+    padHexString(crypto.keccak256(combinedData).toHexString(), 32),
+  );
+};

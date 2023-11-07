@@ -26,6 +26,12 @@ export const padHexStringToEven = (hexString: string): string => {
   return `0x${padded}`;
 };
 
+export const padHexString = (hexString: string, byteLength: number): string => {
+  const stripped = hexString.substring(2);
+  const padded = stripped.padStart(<i32>(byteLength * 2), '0');
+  return `0x${padded}`;
+};
+
 /**
  * Reverse in an endian-friendly way.
  */

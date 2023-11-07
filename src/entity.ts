@@ -7,6 +7,7 @@ import {
   TransactCommitment,
   Unshield,
   Nullifier,
+  RailgunTransaction,
 } from '../generated/schema';
 import {
   getCiphertextData,
@@ -184,6 +185,44 @@ export const saveUnshield = (
   entity.amount = amount;
   entity.fee = fee;
   entity.transactCommitmentBatchIndex = transactCommitmentBatchIndex;
+
+  entity.save();
+  return entity;
+};
+
+export const saveRailgunTransaction = (
+  id: Bytes,
+  blockNumber: BigInt,
+  blockTimestamp: BigInt,
+  transactionHash: Bytes,
+  nullifiers: Bytes[],
+  commitments: Bytes[],
+  boundParams: Bytes,
+  hasUnshield: boolean,
+  utxoTreeIn: BigInt,
+  utxoTree: BigInt,
+  utxoBatchStartPositionOut: BigInt,
+  unshieldToken: Token,
+  unshieldToAddress: Bytes,
+  unshieldValue: BigInt,
+  verificationHash: Bytes,
+): RailgunTransaction => {
+  const entity = new RailgunTransaction(id);
+
+  entity.transactionHash = transactionHash;
+  entity.blockNumber = blockNumber;
+  entity.blockTimestamp = blockTimestamp;
+  entity.nullifiers = nullifiers;
+  entity.commitments = commitments;
+  entity.boundParamsHash = boundParams;
+  entity.hasUnshield = hasUnshield;
+  entity.utxoTreeIn = utxoTreeIn;
+  entity.utxoTreeOut = utxoTree;
+  entity.utxoBatchStartPositionOut = utxoBatchStartPositionOut;
+  entity.unshieldToken = unshieldToken.id;
+  entity.unshieldToAddress = unshieldToAddress;
+  entity.unshieldValue = unshieldValue;
+  entity.verificationHash = verificationHash;
 
   entity.save();
   return entity;

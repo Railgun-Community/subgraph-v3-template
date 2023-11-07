@@ -104,3 +104,26 @@ type Nullifier @entity(immutable: true) {
   treeNumber: Int!
   nullifier: Bytes!
 }
+
+type RailgunTransaction @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  nullifiers: [Bytes!]!
+  commitments: [Bytes!]!
+  boundParamsHash: Bytes!
+  hasUnshield: Boolean!
+  utxoTreeIn: BigInt!
+  utxoTreeOut: BigInt!
+  utxoBatchStartPositionOut: BigInt!
+  unshieldToken: Token!
+  unshieldToAddress: Bytes!
+  unshieldValue: BigInt!
+  blockTimestamp: BigInt!
+  verificationHash: Bytes!
+}
+
+type VerificationHash @entity(immutable: false) {
+  id: Bytes!
+  verificationHash: Bytes!
+}
