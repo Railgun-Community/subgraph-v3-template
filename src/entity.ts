@@ -164,7 +164,7 @@ export const saveUnshield = (
   transactionHash: Bytes,
   to: Bytes,
   token: Token,
-  amount: BigInt,
+  value: BigInt,
   fee: BigInt,
   transactCommitmentBatchIndex: BigInt,
 ): Unshield => {
@@ -177,7 +177,7 @@ export const saveUnshield = (
   // Custom required values
   entity.to = to;
   entity.token = token.id;
-  entity.amount = amount;
+  entity.value = value;
   entity.fee = fee;
   entity.transactCommitmentBatchIndex = transactCommitmentBatchIndex;
 

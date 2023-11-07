@@ -89,7 +89,7 @@ type Unshield @entity(immutable: true) {
   # Custom required values
   to: Bytes! #address
   token: Token!
-  amount: BigInt!
+  value: BigInt!
   fee: BigInt!
   transactCommitmentBatchIndex: BigInt!
 }
