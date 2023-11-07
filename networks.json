@@ -1,0 +1,12 @@
+{
+  "mumbai": {
+    "PoseidonT4": {
+      "address": "0x22dd4ff4631bb0ad56e0ed6274dcce04d96af84e",
+      "startBlock": 28697343
+    },
+    "PoseidonMerkleAccumulator": {
+      "address": "0xc7212d4efBf7425Ea07f4d9770f5809578557bC0",
+      "startBlock": 42082388
+    }
+  }
+}

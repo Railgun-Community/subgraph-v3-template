@@ -1,0 +1,29 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: PoseidonMerkleAccumulator
+    network: mumbai
+    source:
+      abi: PoseidonMerkleAccumulator
+      address: "0xc7212d4efBf7425Ea07f4d9770f5809578557bC0"
+      startBlock: 42082388
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - CommitmentPreimage
+        - Commitment
+        - Unshield
+      abis:
+        - name: PoseidonMerkleAccumulator
+          file: ./abis/PoseidonMerkleAccumulator.json
+        - name: PoseidonT4
+          file: ./abis/PoseidonT4.json
+      eventHandlers:
+        - event: AccumulatorStateUpdate((bytes32[],(bytes32[],uint8,uint32,(bytes32,(uint8,address,uint256),uint120),bytes32)[],(address,(bytes32,(uint8,address,uint256),uint120),(bytes32[3],bytes32))[],(bytes,bytes32,bytes32)[],(bytes32,uint256)[],bytes),uint32,uint224)
+          handler: handleAccumulatorStateUpdate
+      file: ./src/poseidon-merkle-accumulator-events.ts

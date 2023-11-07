@@ -1,0 +1,108 @@
+# Sync with TS enum in railgun-smart-wallet.ts
+enum CommitmentType {
+  ShieldCommitment
+  TransactCommitment
+  LegacyGeneratedCommitment
+  LegacyEncryptedCommitment
+}
+
+# Sync with TS enum in railgun-smart-wallet.ts
+enum TokenType {
+  ERC20
+  ERC721
+  ERC1155
+}
+
+type Token @entity(immutable: true) {
+  id: Bytes! # output of getTokenID()
+  tokenType: TokenType!
+  tokenAddress: Bytes! #address
+  tokenSubID: Bytes!
+}
+
+type CommitmentPreimage @entity(immutable: true) {
+  id: Bytes! # commitment hash
+  npk: Bytes!
+  token: Token!
+  value: BigInt!
+}
+
+type CommitmentCiphertext @entity(immutable: true) {
+  id: Bytes! # commitment hash
+  ciphertext: Bytes!
+  blindedSenderViewingKey: Bytes!
+  blindedReceiverViewingKey: Bytes!
+}
+
+# We use an Interface in order to query all Commitment types at once,
+#  but retain strong typings for individual fields.
+interface Commitment {
+  id: Bytes! # tree number + tree position
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  treeNumber: Int!
+  commitmentType: CommitmentType!
+  hashes: [Bytes!]!
+}
+
+type ShieldCommitment implements Commitment @entity(immutable: true) {
+  # Common interface values
+  id: Bytes! # tree number + tree position
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  treeNumber: Int!
+  commitmentType: CommitmentType!
+  hashes: [Bytes!]!
+
+  # Custom values: Shield event
+  from: Bytes!
+  treePosition: Int!
+  preimage: CommitmentPreimage!
+  from: Bytes!
+  encryptedBundle: [Bytes!]!
+  shieldKey: Bytes!
+  fee: BigInt!
+}
+
+type TransactCommitment implements Commitment @entity(immutable: true) {
+  # Common interface values
+  id: Bytes! # tree number + tree position
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  treeNumber: Int!
+  commitmentType: CommitmentType!
+  hashes: [Bytes!]!
+
+  # Custom values: Transact event
+  commitmentCiphertexts: [CommitmentCiphertext!]!
+  batchStartTreePosition: Int!
+}
+
+type Unshield @entity(immutable: true) {
+  id: Bytes! # transaction hash + event log index
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+
+  # Custom required values
+  railgunTxid: BigInt!
+  to: Bytes! #address
+  token: Token!
+  amount: BigInt!
+  fee: BigInt!
+  transactCommitmentBatchIndex: BigInt!
+}
+
+type Nullifier @entity(immutable: true) {
+  id: Bytes! # transaction hash + event log index
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+
+  # Custom required values
+  treeNumber: Int!
+  nullifier: Bytes!
+}

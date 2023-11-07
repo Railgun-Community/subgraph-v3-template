@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# ./replace-chain-id 1 && graph build --network mainnet && graph deploy --product hosted-service railgun-community/railgun-v3-ethereum; \
+# ./replace-chain-id 5 && graph build --network goerli && graph deploy --product hosted-service railgun-community/railgun-v3-goerli; \
+# ./replace-chain-id 56 && graph build --network bsc && graph deploy --product hosted-service railgun-community/railgun-v3-bsc; \
+# ./replace-chain-id 137 && graph build --network matic && graph deploy --product hosted-service railgun-community/railgun-v3-polygon; \
+./replace-chain-id 80001 && graph build --network mumbai && graph deploy --product hosted-service railgun-community/railgun-v3-mumbai; \
+# ./replace-chain-id 42161 && graph build --network arbitrum-one && graph deploy --product hosted-service railgun-community/railgun-v3-arbitrum; \
+# ./replace-chain-id 421613 && graph build --network arbitrum-goerli && graph deploy --product hosted-service railgun-community/railgun-v3-arbitrum-goerli;
+# ./replace-chain-id 11155111 && graph build --network sepolia && graph deploy --product hosted-service railgun-community/railgun-v3-sepolia;
+
+# Reset
+./replace-chain-id 1

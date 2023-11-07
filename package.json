@@ -1,0 +1,14 @@
+{
+  "name": "subgraph-v2-ethereum",
+  "license": "MIT",
+  "scripts": {
+    "test": "graph test src -v 0.5.2"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.60.0",
+    "@graphprotocol/graph-ts": "0.31.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.6.0"
+  }
+}

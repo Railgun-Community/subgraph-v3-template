@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# RUN: `./replace-chain-id 137`
+
+function escape_slashes {
+    sed 's/\//\\\//g'
+}
+
+function change_line {
+    local OLD_LINE_PATTERN=$1; shift
+    local NEW_LINE=$1; shift
+    local FILE=$1
+
+    local NEW=$(echo "${NEW_LINE}" | escape_slashes)
+    # FIX: No space after the option i.
+    sed -i.bak '/'"${OLD_LINE_PATTERN}"'/s/.*/'"${NEW}"'/' "${FILE}"
+    mv "${FILE}.bak" /tmp/
+}
+
+change_line "export const CHAIN_ID.*" "export const CHAIN_ID: u32 = $1;" src/chain-id.ts
