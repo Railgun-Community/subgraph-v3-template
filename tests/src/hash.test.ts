@@ -1,5 +1,5 @@
 import { assert, describe, test } from 'matchstick-as/assembly';
-import { BigInt, Bytes, log } from '@graphprotocol/graph-ts';
+import { Bytes } from '@graphprotocol/graph-ts';
 import { getNoteHash } from '../../src/hash';
 import { createMockPoseidonT4Call } from '../util/mock-calls.test';
 import { reversedBytesToBigInt } from '../../src/utils';

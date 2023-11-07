@@ -1,4 +1,4 @@
-import { Bytes, BigInt, log } from '@graphprotocol/graph-ts';
+import { Bytes, BigInt } from '@graphprotocol/graph-ts';
 import {
   CommitmentPreimage,
   Token,
@@ -9,11 +9,6 @@ import {
   Nullifier,
   RailgunTransaction,
 } from '../generated/schema';
-import {
-  getCiphertextData,
-  getCiphertextIV,
-  getCiphertextTag,
-} from './ciphertext';
 import { getTokenHash, getTokenTypeEnum } from './token';
 import { bigIntToBytes } from './utils';
 
