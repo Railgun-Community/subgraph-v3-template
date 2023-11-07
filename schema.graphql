@@ -78,6 +78,8 @@ type TransactCommitment implements Commitment @entity(immutable: true) {
   # Custom values: Transact event
   commitmentCiphertexts: [CommitmentCiphertext!]!
   batchStartTreePosition: Int!
+  transactIndex: Int!
+  senderCiphertext: Bytes!
 }
 
 type Unshield @entity(immutable: true) {
@@ -91,7 +93,7 @@ type Unshield @entity(immutable: true) {
   token: Token!
   value: BigInt!
   fee: BigInt!
-  transactCommitmentBatchIndex: BigInt!
+  transactIndex: BigInt!
 }
 
 type Nullifier @entity(immutable: true) {

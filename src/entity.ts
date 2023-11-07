@@ -134,8 +134,10 @@ export const saveTransactCommitment = (
   transactionHash: Bytes,
   treeNumber: BigInt,
   batchStartTreePosition: BigInt,
+  transactIndex: BigInt,
   commitmentHashes: Bytes[],
   commitmentCiphertexts: CommitmentCiphertext[],
+  senderCiphertext: Bytes,
 ): TransactCommitment => {
   const entity = new TransactCommitment(id);
 
@@ -146,12 +148,14 @@ export const saveTransactCommitment = (
   entity.transactionHash = transactionHash;
   entity.treeNumber = treeNumber.toI32();
   entity.batchStartTreePosition = batchStartTreePosition.toI32();
+  entity.transactIndex = transactIndex.toI32();
 
   // Custom values: CommitmentBatch event
   entity.hashes = commitmentHashes;
   entity.commitmentCiphertexts = commitmentCiphertexts.map<Bytes>(
     (commitmentCiphertext) => commitmentCiphertext.id,
   );
+  entity.senderCiphertext = senderCiphertext;
 
   entity.save();
   return entity;
@@ -166,7 +170,7 @@ export const saveUnshield = (
   token: Token,
   value: BigInt,
   fee: BigInt,
-  transactCommitmentBatchIndex: BigInt,
+  transactIndex: BigInt,
 ): Unshield => {
   const entity = new Unshield(id);
 
@@ -179,7 +183,7 @@ export const saveUnshield = (
   entity.token = token.id;
   entity.value = value;
   entity.fee = fee;
-  entity.transactCommitmentBatchIndex = transactCommitmentBatchIndex;
+  entity.transactIndex = transactIndex;
 
   entity.save();
   return entity;

@@ -54,6 +54,7 @@ export function handleAccumulatorStateUpdate(
     commitments,
     transactions,
     commitmentCiphertext,
+    senderCiphertext,
     treasuryFeeMap,
     utxoTree,
     utxoStartPosition,
@@ -79,6 +80,7 @@ function handleTransactions(
   commitments: Bytes[],
   transactions: AccumulatorStateUpdateUpdateTransactionsStruct[],
   commitmentCiphertext: AccumulatorStateUpdateUpdateCommitmentCiphertextStruct[],
+  senderCiphertext: Bytes,
   treasuryFeeMap: TreasuryFeeMap,
   utxoTree: BigInt,
   utxoStartPosition: BigInt,
@@ -118,7 +120,7 @@ function handleTransactions(
 
     const utxoTreeIn = spendAccumulatorNumber;
 
-    const transactCommitmentBatchIndex = BigInt.fromString(i.toString());
+    const transactIndex = BigInt.fromString(i.toString());
 
     handleRailgunTransaction(
       event,
@@ -129,7 +131,7 @@ function handleTransactions(
       utxoTreeIn,
       utxoTree,
       utxoStartPosition,
-      transactCommitmentBatchIndex,
+      transactIndex,
     );
 
     const transactEventID = idFrom2PaddedBigInts(utxoTree, utxoStartPosition);
@@ -157,8 +159,10 @@ function handleTransactions(
       event.transaction.hash,
       utxoTree,
       utxoStartPosition,
+      transactIndex,
       commitmentHashes,
       transactCommitmentCiphertexts,
+      senderCiphertext,
     );
 
     for (let j = 0; j < nullifiers.length; j += 1) {
@@ -201,7 +205,7 @@ function handleTransactions(
       const unshieldID = idFrom3PaddedBigInts(
         event.block.number,
         event.logIndex,
-        transactCommitmentBatchIndex,
+        transactIndex,
       );
 
       const token = saveToken(
@@ -219,7 +223,7 @@ function handleTransactions(
         token,
         unshieldPreimage.value,
         unshieldFee,
-        transactCommitmentBatchIndex,
+        transactIndex,
       );
     }
 
@@ -325,7 +329,7 @@ export function handleRailgunTransaction(
   utxoTreeIn: BigInt,
   utxoTree: BigInt,
   utxoStartPosition: BigInt,
-  transactCommitmentBatchIndex: BigInt,
+  transactIndex: BigInt,
 ): void {
   const hasUnshield = !unshieldPreimage.value.equals(BigInt.zero());
   const hasOnlyUnshield = hasUnshield && commitmentHashes.length === 0;
@@ -350,7 +354,7 @@ export function handleRailgunTransaction(
   const id = idFrom3PaddedBigInts(
     event.block.number,
     event.logIndex,
-    transactCommitmentBatchIndex,
+    transactIndex,
   );
 
   const verificationHash = updateSavedRailgunTransactionVerificationHash(
