@@ -60,7 +60,6 @@ type ShieldCommitment implements Commitment @entity(immutable: true) {
   from: Bytes!
   treePosition: Int!
   preimage: CommitmentPreimage!
-  from: Bytes!
   encryptedBundle: [Bytes!]!
   shieldKey: Bytes!
   fee: BigInt!
@@ -88,7 +87,6 @@ type Unshield @entity(immutable: true) {
   transactionHash: Bytes!
 
   # Custom required values
-  railgunTxid: BigInt!
   to: Bytes! #address
   token: Token!
   amount: BigInt!

@@ -18,6 +18,8 @@ export const getPoseidonT4ContractAddress = (): string => {
       return '0x22dd4ff4631bb0ad56e0ed6274dcce04d96af84e'; // Mumbai
     case 421613:
       return '0xfbc165e5601c9b658b63f71debe06a9f296f1ab7'; // Arbitrum Goerli
+    case 11155111:
+      return '0xdd1e3cb1659e6702ce7b8cf0013a41b91e658a07'; // Sepolia
   }
   throw new Error(`Unrecognized chain ID: ${chainId.toString()}`);
 };

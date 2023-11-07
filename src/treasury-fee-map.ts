@@ -22,7 +22,6 @@ export function getTreasuryFeeMap(
 
     let unshieldValue = BigInt.zero();
     for (let j = 0; j < transactions.length; j += 1) {
-      log.debug('a', []);
       const unshieldTokenHash = getTokenHash(
         transactions[j].unshieldPreimage.token.tokenType,
         transactions[j].unshieldPreimage.token.tokenAddress,

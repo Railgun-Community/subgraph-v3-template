@@ -5,7 +5,6 @@ import {
   CommitmentCiphertext,
   ShieldCommitment,
   TransactCommitment,
-  Ciphertext,
   Unshield,
   Nullifier,
 } from '../generated/schema';
@@ -53,20 +52,6 @@ export const saveCommitmentPreimage = (
   entity.npk = npk;
   entity.token = token.id;
   entity.value = value;
-
-  entity.save();
-  return entity;
-};
-
-export const saveCiphertextFromBytesArray = (
-  id: Bytes,
-  ciphertext: Bytes[],
-): Ciphertext => {
-  const entity = new Ciphertext(id);
-
-  entity.iv = getCiphertextIV(ciphertext);
-  entity.tag = getCiphertextTag(ciphertext);
-  entity.data = getCiphertextData(ciphertext);
 
   entity.save();
   return entity;
@@ -181,7 +166,6 @@ export const saveUnshield = (
   blockNumber: BigInt,
   blockTimestamp: BigInt,
   transactionHash: Bytes,
-  railgunTxid: BigInt,
   to: Bytes,
   token: Token,
   amount: BigInt,
@@ -195,7 +179,6 @@ export const saveUnshield = (
   entity.transactionHash = transactionHash;
 
   // Custom required values
-  entity.railgunTxid = railgunTxid;
   entity.to = to;
   entity.token = token.id;
   entity.amount = amount;

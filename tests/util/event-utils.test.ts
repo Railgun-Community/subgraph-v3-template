@@ -41,7 +41,7 @@ export const createAccumulatorStateUpdateEvent = (): AccumulatorStateUpdateEvent
         ),
       ]),
       // commitmentsCount: i32
-      ethereum.Value.fromI32(changetype<i32>(2)),
+      ethereum.Value.fromI32(changetype<i32>(3)),
       // spendAccumulatorNumber: BigInt
       ethereum.Value.fromUnsignedBigInt(BigInt.zero()),
       // unshieldPreimage: AccumulatorStateUpdateUpdateTransactionsUnshieldPreimageStruct
@@ -158,6 +158,46 @@ export const createAccumulatorStateUpdateEvent = (): AccumulatorStateUpdateEvent
       ethereum.Value.fromBytes(
         Bytes.fromHexString(
           '0x9090909090909090a0a0a0a0a0a0a0a0b0b0b0b0b0b0b0b0c0c0c0c0c0c0c0c0',
+        ),
+      ),
+    ]),
+    changetype<ethereum.Tuple>([
+      // ciphertext: Bytes
+      ethereum.Value.fromBytes(
+        Bytes.fromHexString(
+          '0x1717171717171717272727272727272737373737373737374747474747474747',
+        ),
+      ),
+      // blindedSenderViewingKey: Bytes
+      ethereum.Value.fromBytes(
+        Bytes.fromHexString(
+          '0x5353535353535353636363636363636373737373737373738383838383838383',
+        ),
+      ),
+      // blindedReceiverViewingKey: Bytes
+      ethereum.Value.fromBytes(
+        Bytes.fromHexString(
+          '0x9292929292929292a2a2a2a2a2a2a2a2b2b2b2b2b2b2b2b2c2c2c2c2c2c2c2c2',
+        ),
+      ),
+    ]),
+    changetype<ethereum.Tuple>([
+      // ciphertext: Bytes
+      ethereum.Value.fromBytes(
+        Bytes.fromHexString(
+          '0x1919191919191919292929292929292939393939393939394949494949494949',
+        ),
+      ),
+      // blindedSenderViewingKey: Bytes
+      ethereum.Value.fromBytes(
+        Bytes.fromHexString(
+          '0x5151515151515151616161616161616171717171717171718181818181818181',
+        ),
+      ),
+      // blindedReceiverViewingKey: Bytes
+      ethereum.Value.fromBytes(
+        Bytes.fromHexString(
+          '0x9696969696969696a6a6a6a6a6a6a6a6b6b6b6b6b6b6b6b6c6c6c6c6c6c6c6c6',
         ),
       ),
     ]),

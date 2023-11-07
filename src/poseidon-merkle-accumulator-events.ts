@@ -5,7 +5,7 @@ import {
   AccumulatorStateUpdateUpdateShieldsStruct,
   AccumulatorStateUpdateUpdateTransactionsStruct,
 } from '../generated/PoseidonMerkleAccumulator/PoseidonMerkleAccumulator';
-import { reversedBytesToBigInt } from './utils';
+import { bigIntToBytes, reversedBytesToBigInt } from './utils';
 import {
   saveCommitmentCiphertext,
   saveCommitmentPreimage,
@@ -16,16 +16,13 @@ import {
   saveUnshield,
 } from './entity';
 import { idFrom2PaddedBigInts, idFrom3PaddedBigInts } from './id';
-import {
-  getNoteHash,
-  getRailgunTransactionID,
-  getUnshieldPreImageNoteHash,
-} from './hash';
+import { getNoteHash, getUnshieldPreImageNoteHash } from './hash';
 import { getTokenHash } from './token';
 import { TreasuryFeeMap, getTreasuryFeeMap } from './treasury-fee-map';
 import { CommitmentCiphertext } from '../generated/schema';
 
 const TREE_MAX_ITEMS = BigInt.fromString('65536');
+const BIGINT_ONE = BigInt.fromString('1');
 
 export function handleAccumulatorStateUpdate(
   event: AccumulatorStateUpdateEvent,
@@ -46,7 +43,7 @@ export function handleAccumulatorStateUpdate(
   let utxoTree = accumulatorNumber;
   let utxoStartPosition = startPosition;
 
-  const { newUTXOTree, newUTXOStartPosition } = handleTransactions(
+  const totalCommitmentsCount = handleTransactions(
     event,
     commitments,
     transactions,
@@ -56,13 +53,19 @@ export function handleAccumulatorStateUpdate(
     utxoStartPosition,
   );
 
-  handleShields(
-    event,
-    shields,
-    treasuryFeeMap,
-    newUTXOTree,
-    newUTXOStartPosition,
-  );
+  for (
+    let i = BigInt.zero();
+    i < totalCommitmentsCount;
+    i = i.plus(BIGINT_ONE)
+  ) {
+    utxoStartPosition = utxoStartPosition.plus(BIGINT_ONE);
+    if (utxoStartPosition >= TREE_MAX_ITEMS) {
+      utxoStartPosition = BigInt.zero();
+      utxoTree = utxoTree.plus(BIGINT_ONE);
+    }
+  }
+
+  handleShields(event, shields, treasuryFeeMap, utxoTree, utxoStartPosition);
 }
 
 function handleTransactions(
@@ -73,8 +76,9 @@ function handleTransactions(
   treasuryFeeMap: TreasuryFeeMap,
   utxoTree: BigInt,
   utxoStartPosition: BigInt,
-): { newUTXOTree: BigInt; newUTXOStartPosition: BigInt } {
+): BigInt {
   let commitmentsStartIndex = 0;
+  let totalCommitmentsCount = BigInt.zero();
 
   for (let i = 0; i < transactions.length; i += 1) {
     const transaction = transactions[i];
@@ -101,18 +105,18 @@ function handleTransactions(
     }
     if (commitmentCiphertexts.length !== commitmentsCount) {
       throw new Error(
-        'Expected commitmentCiphertexts length to match commitmentsCount',
+        `Expected commitmentCiphertexts length to match commitmentsCount: ${commitmentCiphertexts.length} !== ${commitmentsCount}`,
       );
     }
     commitmentsStartIndex = commitmentsEndIndex;
 
     const hasUnshield = !unshieldPreimage.value.equals(BigInt.zero());
-    const railgunTxid = getRailgunTransactionID(
-      nullifiers,
-      commitmentHashes,
-      boundParamsHash,
-      hasUnshield ? getUnshieldPreImageNoteHash(unshieldPreimage) : null,
-    );
+    // const railgunTxid = getRailgunTransactionID(
+    //   nullifiers,
+    //   commitmentHashes,
+    //   boundParamsHash,
+    //   hasUnshield ? getUnshieldPreImageNoteHash(unshieldPreimage) : null,
+    // );
 
     // TODO: Save RailgunTransaction
     // TODO: Handle case where only-unshield
@@ -213,7 +217,6 @@ function handleTransactions(
         event.block.number,
         event.block.timestamp,
         event.transaction.hash,
-        railgunTxid,
         unshieldPreimage.npk,
         token,
         unshieldPreimage.value,
@@ -222,16 +225,20 @@ function handleTransactions(
       );
     }
 
+    totalCommitmentsCount = totalCommitmentsCount.plus(
+      BigInt.fromString(commitmentsCount.toString()),
+    );
+
     utxoStartPosition = utxoStartPosition.plus(
       BigInt.fromString(commitmentsCount.toString()),
     );
     if (utxoStartPosition >= TREE_MAX_ITEMS) {
       utxoStartPosition = BigInt.zero();
-      utxoTree = utxoTree.plus(BigInt.fromString('1'));
+      utxoTree = utxoTree.plus(BIGINT_ONE);
     }
   }
 
-  return { newUTXOTree: utxoTree, newUTXOStartPosition: utxoStartPosition };
+  return totalCommitmentsCount;
 }
 
 function handleShields(
@@ -296,17 +303,17 @@ function handleShields(
       utxoTree,
       utxoStartPosition,
       shield.from,
-      Bytes.fromBigInt(commitmentHash),
+      bigIntToBytes(commitmentHash),
       commitmentPreimage,
       shield.ciphertext.encryptedBundle,
       shield.ciphertext.shieldKey,
       shieldFee,
     );
 
-    utxoStartPosition = utxoStartPosition.plus(BigInt.fromString('1'));
+    utxoStartPosition = utxoStartPosition.plus(BIGINT_ONE);
     if (utxoStartPosition >= TREE_MAX_ITEMS) {
       utxoStartPosition = BigInt.zero();
-      utxoTree = utxoTree.plus(BigInt.fromString('1'));
+      utxoTree = utxoTree.plus(BIGINT_ONE);
     }
   }
 }
